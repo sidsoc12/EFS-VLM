@@ -342,9 +342,11 @@ def main():
             cpu_offload=CPUOffload(offload_params=False),
             device_id=device_id,
             sync_module_states=True,  # broadcast loaded ckpt from rank 0 -> all ranks
-            sharding_strategy=ShardingStrategy.FULL_SHARD
-            if args.fsdp_sharding_strategy == "full"
-            else ShardingStrategy.HYBRID_SHARD,
+            sharding_strategy=(
+                ShardingStrategy.FULL_SHARD
+                if args.fsdp_sharding_strategy == "full"
+                else ShardingStrategy.HYBRID_SHARD
+            ),
             use_orig_params=args.fsdp_use_orig_params,
             mixed_precision=mp_policy,
             forward_prefetch=True,
