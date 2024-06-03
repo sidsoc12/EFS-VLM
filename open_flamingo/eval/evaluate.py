@@ -41,7 +41,6 @@ from open_flamingo.train.distributed import init_distributed_device, world_info_
 from pinecone import Pinecone
 from langchain_together.embeddings import TogetherEmbeddings
 from langchain_pinecone import PineconeVectorStore
-from langchain_together.embeddings import TogetherEmbeddings
 # pip install langchain-pinecone (added to ragreq-requirements.yml)
 
 def get_vector_store():
@@ -838,9 +837,7 @@ def evaluate_captioning(
     predictions = defaultdict()
 
     # New addition: RAGADDITION
-    docsearch = get_vector_store(embeddings_model=TogetherEmbeddings(model="togethercomputer/m2-bert-80M-8k-retrieval", api_key="YOUR_API_KEY"),
-                index_name="YOUR_INDEX_NAME",
-                api_key="YOUR_API_KEY")
+    docsearch = get_vector_store()
     # END RAGADDITION
     
     for batch in tqdm(
@@ -1043,9 +1040,7 @@ def evaluate_vqa(
     predictions = []
 
     # New addition: RAGADDITION
-    docsearch = get_vector_store(embeddings_model=TogetherEmbeddings(model="togethercomputer/m2-bert-80M-8k-retrieval", api_key="YOUR_API_KEY"),
-                index_name="YOUR_INDEX_NAME",
-                api_key="YOUR_API_KEY")
+    docsearch = get_vector_store()
     # End RAGADDITION
 
     for batch in tqdm(
