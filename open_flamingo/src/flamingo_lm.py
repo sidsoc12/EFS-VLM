@@ -22,11 +22,6 @@ class FlamingoLayer(nn.Module):
             )
         self.decoder_layer._use_gradient_checkpointing = gradient_checkpointing
 
-        # Adding the textual projection layer before cross attention
-        self.textual_projection = nn.Linear(
-            decoder_layer.config.hidden_size, gated_cross_attn_layer.dim
-        )
-
     def is_conditioned(self) -> bool:
         """Check whether the layer is conditioned."""
         return self.vis_x is not None and self.media_locations is not None
