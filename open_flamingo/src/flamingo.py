@@ -110,7 +110,8 @@ class Flamingo(nn.Module):
             # Case: do not use caching (i.e. this is a standard forward pass);
             self._encode_vision_x(vision_x=vision_x)
             self._condition_media_locations(input_ids=lang_x)
-
+        # Apply text projection before passing through the language encoder
+        lang_x = self.text_projection(lang_x)
         output = self.lang_encoder(
             input_ids=lang_x,
             attention_mask=attention_mask,
