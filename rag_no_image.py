@@ -15,8 +15,7 @@ Together_key = "bf2664603dc659dc6f4c81c3ebee8edab35340390f39f8af6c450a2457214a5b
 embeddings = TogetherEmbeddings(model="togethercomputer/m2-bert-80M-8k-retrieval", api_key=Together_key)
 index_name = "mammogram-index"
 
-pip install langchain-pinecone
-
+# pip install langchain-pinecone (added to ragreq-requirements.yml)
 from pinecone import Pinecone
 from langchain_pinecone import PineconeVectorStore
 import os
@@ -30,88 +29,14 @@ pc = Pinecone(api_key=api_key)
 index = pc.Index("mammogram-index")
 docsearch = PineconeVectorStore.from_existing_index(index_name, embeddings)
 
-index.describe_index_stats()
-
-# Based on the image, answer this query .
-# Query:
-# Here is some context 1:
-#
+#index.describe_index_stats()- more useful for notebook than for .py file
 
 query = "Is dairy (milk) linked to a higher risk of breast cancer? "
 docs = docsearch.similarity_search(query, k=2)
 for doc in docs:
     print(str(doc.metadata["page"]) + ":", doc.page_content[:300])
 
-fullquery = f"This is the input string: {query} \n This is context 1: {docs[0].page_content[:300]} \n This is context 2: {docs[1].page_content[:300]}"
-
-fullquery
-
-pip install open-flamingo
-
-from open_flamingo import create_model_and_transforms
-
-model, image_processor, tokenizer = create_model_and_transforms(
-    clip_vision_encoder_path="ViT-L-14",
-    clip_vision_encoder_pretrained="openai",
-    lang_encoder_path="anas-awadalla/mpt-1b-redpajama-200b",
-    tokenizer_path="anas-awadalla/mpt-1b-redpajama-200b",
-    cross_attn_every_n_layers=1,
-    cache_dir="PATH/TO/CACHE/DIR"  # Defaults to ~/.cache
-)
-from huggingface_hub import hf_hub_download
-import torch
-
-checkpoint_path = hf_hub_download("openflamingo/OpenFlamingo-3B-vitl-mpt1b", "checkpoint.pt")
-model.load_state_dict(torch.load(checkpoint_path), strict=False)
-
-tokenizer.padding_side = "left" # For generation padding tokens should be on the left
-lang_x = tokenizer(
-    [fullquery],
-    return_tensors="pt",
-)
-
-
-"""
-Step 4: Generate text
-"""
-generated_text = model.generate(
-    vision_x=vision_x,
-    lang_x=lang_x["input_ids"],
-    attention_mask=lang_x["attention_mask"],
-    max_new_tokens=20,
-    num_beams=3,
-)
-
-print("Generated text: ", tokenizer.decode(generated_text[0]))
-
-"""We need to have access to the Llama weights
-
-python src/transformers/models/llama/convert_llama_weights_to_hf.py \
-    --input_dir /path/to/downloaded/llama/weights --model_size 7B --output_dir /output/path --llama_version 3
-
-from transformers import AutoModelForCausalLM, AutoTokenizer
-
-tokenizer = AutoTokenizer.from_pretrained("/output/path")
-model = AutoModelForCausalLM.from_pretrained("/output/path")
-"""
-
-# feed context and query into model
-
-"""
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import RetrievalQA
-
-# completion llm: replace this with our llm (OpenFlamingo?)
-llm = ChatOpenAI(
-    openai_api_key=OPENAI_API_KEY,
-    model_name='gpt-3.5-turbo',
-    temperature=0.0
-)
-
-qa = RetrievalQA.from_chain_type(
-    llm=llm,
-    chain_type="stuff",
-    retriever=vectorstore.as_retriever()
-)
-qa.run(query)
-"""
+fullquery = f"""Based on the image, answer this query:\n
+        Query: This is the input string: {query} \n
+        Here is some context, 1: {docs[0].page_content[:300]} \n
+        Here is some context, 2: {docs[1].page_content[:300]}"""
