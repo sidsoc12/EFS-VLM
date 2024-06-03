@@ -42,16 +42,16 @@ from pinecone import Pinecone
 from langchain_together.embeddings import TogetherEmbeddings
 from langchain_pinecone import PineconeVectorStore
 
-def get_rag_context(query, embeddings_model, index_name, api_key, k=2):
+def get_vector_store(embeddings_model, index_name, api_key):
     # Initialize Pinecone client
     pc = Pinecone(api_key=api_key)
     index = pc.Index(index_name)
-    docsearch = PineconeVectorStore.from_existing_index(index_name, embeddings_model)
-    
+    return PineconeVectorStore.from_existing_index(index_name, embeddings_model)
+
+def get_rag_context(query, docsearch, k=2):
     # Retrieve top-k relevant documents
     docs = docsearch.similarity_search(query, k=k)
     context = "\n".join([doc.page_content for doc in docs])
-    
     return context
 # END RAGADDITION
 
@@ -827,6 +827,13 @@ def evaluate_captioning(
 
     utils.random_seed(seed, args.rank)
     predictions = defaultdict()
+
+    # New addition: RAGADDITION
+    docsearch = get_vector_store(embeddings_model=TogetherEmbeddings(model="togethercomputer/m2-bert-80M-8k-retrieval", api_key="YOUR_API_KEY"),
+                index_name="YOUR_INDEX_NAME",
+                api_key="YOUR_API_KEY")
+    # END RAGADDITION
+    
     for batch in tqdm(
         test_dataloader,
         desc=f"Running inference {dataset_name.upper()}",
@@ -858,9 +865,7 @@ def evaluate_captioning(
             # Retrieve RAG context and append it to the context text
             rag_context = get_rag_context(
                 query=batch["question"][i],
-                embeddings_model=TogetherEmbeddings(model="togethercomputer/m2-bert-80M-8k-retrieval", api_key="YOUR_API_KEY"),
-                index_name="YOUR_INDEX_NAME",
-                api_key="YOUR_API_KEY",
+                docsearch,
                 k=2,
             )
             context_text += f"\nRAG Context: {rag_context}\n"
@@ -1027,6 +1032,13 @@ def evaluate_vqa(
 
     utils.random_seed(seed, args.rank)
     predictions = []
+
+    # New addition: RAGADDITION
+    docsearch = get_vector_store(embeddings_model=TogetherEmbeddings(model="togethercomputer/m2-bert-80M-8k-retrieval", api_key="YOUR_API_KEY"),
+                index_name="YOUR_INDEX_NAME",
+                api_key="YOUR_API_KEY")
+    # End RAGADDITION
+
     for batch in tqdm(
         test_dataloader,
         desc=f"Running inference {dataset_name}",
@@ -1061,9 +1073,7 @@ def evaluate_vqa(
             # Retrieve RAG context and append it to the context text
             rag_context = get_rag_context(
                 query=batch["question"][i],
-                embeddings_model=TogetherEmbeddings(model="togethercomputer/m2-bert-80M-8k-retrieval", api_key="YOUR_API_KEY"),
-                index_name="YOUR_INDEX_NAME",
-                api_key="YOUR_API_KEY",
+                docsearch,
                 k=2,
             )
             context_text += f"\nRAG Context: {rag_context}\n"
