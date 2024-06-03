@@ -55,6 +55,17 @@ class DataInfo:
             self.sampler.set_epoch(epoch)
 
 
+# New addition: RAGADDITION
+def retrieve_context_and_combine(query, docsearch, k=2):
+    """
+    Retrieve relevant context using the vector store and combine it with the query.
+    """
+    docs = docsearch.similarity_search(query, k=k)
+    context = "\n".join([doc.page_content for doc in docs])
+    combined_text = f"Query: {query}\nContext: {context}"
+    return combined_text
+# END RAGADDITION
+
 def get_dataset_size(shards):
     shards_list = list(braceexpand.braceexpand(shards))
     dir_path = os.path.dirname(shards[0])

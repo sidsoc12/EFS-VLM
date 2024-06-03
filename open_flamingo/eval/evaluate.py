@@ -36,6 +36,26 @@ from vqa_metric import compute_vqa_accuracy, postprocess_vqa_generation
 
 from open_flamingo.train.distributed import init_distributed_device, world_info_from_env
 
+
+# New addition: RAGADDITION
+from pinecone import Pinecone
+from langchain_together.embeddings import TogetherEmbeddings
+from langchain_pinecone import PineconeVectorStore
+
+def get_rag_context(query, embeddings_model, index_name, api_key, k=2):
+    # Initialize Pinecone client
+    pc = Pinecone(api_key=api_key)
+    index = pc.Index(index_name)
+    docsearch = PineconeVectorStore.from_existing_index(index_name, embeddings_model)
+    
+    # Retrieve top-k relevant documents
+    docs = docsearch.similarity_search(query, k=k)
+    context = "\n".join([doc.page_content for doc in docs])
+    
+    return context
+# END RAGADDITION
+
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
@@ -833,6 +853,18 @@ def evaluate_captioning(
                     for x in batch_demo_samples[i]
                 ]
             )
+            
+            # New addition: RAGADDITION
+            # Retrieve RAG context and append it to the context text
+            rag_context = get_rag_context(
+                query=batch["question"][i],
+                embeddings_model=TogetherEmbeddings(model="togethercomputer/m2-bert-80M-8k-retrieval", api_key="YOUR_API_KEY"),
+                index_name="YOUR_INDEX_NAME",
+                api_key="YOUR_API_KEY",
+                k=2,
+            )
+            context_text += f"\nRAG Context: {rag_context}\n"
+            # END RAGADDITION
 
             # Keep the text but remove the image tags for the zero-shot case
             if num_shots == 0:
@@ -1024,6 +1056,18 @@ def evaluate_vqa(
                     for x in batch_demo_samples[i]
                 ]
             )
+            
+            # New addition: RAGADDITION 
+            # Retrieve RAG context and append it to the context text
+            rag_context = get_rag_context(
+                query=batch["question"][i],
+                embeddings_model=TogetherEmbeddings(model="togethercomputer/m2-bert-80M-8k-retrieval", api_key="YOUR_API_KEY"),
+                index_name="YOUR_INDEX_NAME",
+                api_key="YOUR_API_KEY",
+                k=2,
+            )
+            context_text += f"\nRAG Context: {rag_context}\n"
+            # END RAGADDITION
 
             # Keep the text but remove the image tags for the zero-shot case
             if num_shots == 0:
