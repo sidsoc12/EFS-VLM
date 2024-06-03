@@ -40,7 +40,6 @@ def preprocess_image(sample, image_processor):
     """
     image = [image_processor(s).unsqueeze(0) for s in sample]
     image = torch.cat(image, dim=0)
-    image = torchvision.transforms.RandomHorizontalFlip(p=0.5)(image)
     return image
 
 
