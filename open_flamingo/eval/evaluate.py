@@ -41,12 +41,21 @@ from open_flamingo.train.distributed import init_distributed_device, world_info_
 from pinecone import Pinecone
 from langchain_together.embeddings import TogetherEmbeddings
 from langchain_pinecone import PineconeVectorStore
+from langchain_together.embeddings import TogetherEmbeddings
+# pip install langchain-pinecone (added to ragreq-requirements.yml)
 
-def get_vector_store(embeddings_model, index_name, api_key):
+def get_vector_store():
     # Initialize Pinecone client
+    # initialize connection to pinecone (get API key at app.pinecone.io)
+    api_key = "88e446de-82c0-4c76-b9c9-5fb56662f003"  # Pinecone API key
+    os.environ['PINECONE_API_KEY'] = api_key
     pc = Pinecone(api_key=api_key)
+    index_name = "mammogram-index"
+    
+    Together_key = "bf2664603dc659dc6f4c81c3ebee8edab35340390f39f8af6c450a2457214a5b"
+    embeddings = TogetherEmbeddings(model="togethercomputer/m2-bert-80M-8k-retrieval", api_key=Together_key)
     index = pc.Index(index_name)
-    return PineconeVectorStore.from_existing_index(index_name, embeddings_model)
+    return PineconeVectorStore.from_existing_index(index_name, embeddings)
 
 def get_rag_context(query, docsearch, k=2):
     # Retrieve top-k relevant documents
