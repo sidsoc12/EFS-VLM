@@ -220,7 +220,7 @@ class MaskedCrossAttention(nn.Module):
         sim = sim - sim.amax(dim=-1, keepdim=True).detach()
         attn = sim.softmax(dim=-1)
 
-        # THE FOLLOWING LINE IS NEW:
+        # THE FOLLOWING LINE IS NEW (VisAttention Addition):
         self.attn_weights = attn  # Store the attention weights
 
         if exists(media_locations) and self.only_attend_immediate_media:

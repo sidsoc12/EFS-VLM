@@ -12,6 +12,14 @@ import os
 import wandb
 from einops import rearrange
 
+# New Addition Line below: VisAttention Addition
+from visualization_utils import visualize_attention
+
+# NEW ADDITIONAL FUNCTION BELOW: VisAttention Addition. Added function below:
+def visualize_attention_example(model, image, layer_num, head=0):
+    # Assuming you have an image (PIL) and the model instance
+    attn_weights = model.lang_encoder._get_decoder_layers()[layer_num].gated_cross_attn_layer.attn_weights
+    visualize_attention(image, attn_weights, layer_num, head)
 
 def get_cast_dtype(precision: str):
     cast_dtype = None
@@ -116,6 +124,13 @@ def train_one_epoch(
 
         divided_loss_laion = loss_laion / args.gradient_accumulation_steps
         (divided_loss_laion * args.loss_multiplier_laion).backward()
+        
+        # NEW ADDITION (VisAttention Addition)
+        # Visualize attention for the first batch in each epoch
+        if num_steps == 0 and args.rank == 0:
+            visualize_attention_example(model, images[0], layer_num=0, head=0)
+        # END ADDITION
+
 
         #### MMC4 FORWARD PASS ####
         images = batch_mmc4[0].to(device_id, dtype=cast_dtype, non_blocking=True)
@@ -170,6 +185,12 @@ def train_one_epoch(
 
         divided_loss_mmc4 = loss_mmc4 / args.gradient_accumulation_steps
         (divided_loss_mmc4 * args.loss_multiplier_mmc4).backward()
+        
+        # NEW ADDITION (VisAttention Addition)
+        # Visualize attention for the first batch in each epoch
+        if num_steps == 0 and args.rank == 0:
+            visualize_attention_example(model, images[0], layer_num=0, head=0)
+        # END ADDITION
 
         if (not args.freeze_lm_embeddings) and (
             not args.fsdp or args.fsdp_use_orig_params
