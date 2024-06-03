@@ -199,7 +199,7 @@ class Flamingo(nn.Module):
             vision_x = self.vision_encoder(vision_x)[1]
         vision_x = rearrange(vision_x, "(b T F) v d -> b T F v d", b=b, T=T, F=F)
         vision_x = self.perceiver(vision_x)
-
+        vision_x = self.visual_projection(vision_x)
         for layer in self.lang_encoder._get_decoder_layers():
             layer.condition_vis_x(vision_x)
 
