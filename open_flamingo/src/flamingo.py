@@ -46,6 +46,10 @@ class Flamingo(nn.Module):
 
         self.vision_encoder = vision_encoder.visual
         self.perceiver = PerceiverResampler(dim=self.vis_dim)
+
+        self.visual_projection = nn.Linear(self.vis_dim, self.lang_dim)
+        self.text_projection = nn.Linear(self.lang_dim, self.lang_dim)
+
         self.lang_encoder = lang_encoder
         self.lang_encoder.init_flamingo(
             media_token_id=media_token_id,
