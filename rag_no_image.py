@@ -15,8 +15,7 @@ Together_key = "bf2664603dc659dc6f4c81c3ebee8edab35340390f39f8af6c450a2457214a5b
 embeddings = TogetherEmbeddings(model="togethercomputer/m2-bert-80M-8k-retrieval", api_key=Together_key)
 index_name = "mammogram-index"
 
-pip install langchain-pinecone
-
+# pip install langchain-pinecone (added to ragreq-requirements.yml)
 from pinecone import Pinecone
 from langchain_pinecone import PineconeVectorStore
 import os
@@ -30,16 +29,14 @@ pc = Pinecone(api_key=api_key)
 index = pc.Index("mammogram-index")
 docsearch = PineconeVectorStore.from_existing_index(index_name, embeddings)
 
-index.describe_index_stats()
-
-# Based on the image, answer this query .
-# Query:
-# Here is some context 1:
-#
+#index.describe_index_stats()- more useful for notebook than for .py file
 
 query = "Is dairy (milk) linked to a higher risk of breast cancer? "
 docs = docsearch.similarity_search(query, k=2)
 for doc in docs:
     print(str(doc.metadata["page"]) + ":", doc.page_content[:300])
 
-fullquery = f"This is the input string: {query} \n This is context 1: {docs[0].page_content[:300]} \n This is context 2: {docs[1].page_content[:300]}"
+fullquery = f"""Based on the image, answer this query:\n
+        Query: This is the input string: {query} \n
+        Here is some context, 1: {docs[0].page_content[:300]} \n
+        Here is some context, 2: {docs[1].page_content[:300]}"""
