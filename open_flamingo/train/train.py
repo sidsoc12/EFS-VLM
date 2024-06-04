@@ -274,13 +274,9 @@ def main():
     model.requires_grad_(False)
     assert sum(p.numel() for p in model.parameters() if p.requires_grad) == 0
 
-    # Unfreeze perceiver, cross-attention layers, and projection layers
-    model.perceiver.requires_grad_(True)
-    model.lang_encoder.gated_cross_attn_layers.requires_grad_(True)
+    # Here we are only unfreezing the projection layers.
     model.visual_projection.requires_grad_(True)
     model.text_projection.requires_grad_(True)
-    if not args.freeze_lm_embeddings:
-        model.lang_encoder.get_input_embeddings().requires_grad_(True)
 
     # Initialize logging
     print(f"Start running training on rank {args.rank}.")

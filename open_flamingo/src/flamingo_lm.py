@@ -52,7 +52,7 @@ class FlamingoLayer(nn.Module):
                     "media_locations must be conditioned before forward pass"
                 )
             # Apply text projection before the cross-attention layer
-            lang_x = self.text_projection(lang_x)
+            lang_x = self.text_projection(lang_x)  # might have to initialize this
             lang_x = self.gated_cross_attn_layer(
                 lang_x,
                 self.vis_x,
