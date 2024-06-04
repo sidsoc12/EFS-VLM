@@ -870,7 +870,7 @@ def evaluate_captioning(
             # New addition: RAGADDITION
             # Retrieve RAG context and append it to the context text
             rag_context = get_rag_context(
-                query=batch["question"][i],
+                query=batch["caption"][i],
                 docsearch,
                 k=2,
             )
