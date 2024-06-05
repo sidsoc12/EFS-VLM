@@ -28,6 +28,8 @@ def run_model():
     wandb_project = "Mammo"
     wandb_entity = "Mammo"
 
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
     # Command to run the training script with the appropriate arguments
     command = [
         "torchrun",
