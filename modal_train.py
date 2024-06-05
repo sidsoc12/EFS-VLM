@@ -70,7 +70,7 @@ def run_model():
         wandb_project,
         "--wandb_entity",
         wandb_entity,
-        "--freeze_base_model",  # Add this flag to freeze base model layers
+        "--freeze_lm_embeddings",  # Add this flag to freeze base model layers
     ]
 
     # Run the training script
