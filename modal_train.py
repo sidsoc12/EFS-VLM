@@ -16,8 +16,9 @@ image = (
 # Define the function to run your training script
 @app.function(
     image=image,
-    gpu="A100",
+    gpu="A100:4",
     memory="128GiB",
+    timeout=86400,
     secrets=[modal.Secret.from_name("wandb")],
 )
 def run_model():
@@ -36,6 +37,7 @@ def run_model():
     wandb_entity = "Mammo"
 
     os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
+    os.environ["TORCH_USE_CUDA_DSA"] = "1"
 
     # Command to run the training script with the appropriate arguments
     command = [
