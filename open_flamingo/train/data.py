@@ -58,9 +58,8 @@ def preprocess_interleaved(
     max_num_images,
     max_tokens=256,
 ):
-    # info = json.loads(sample[0])
-    info = json.loads(sample["json"].decode("utf-8"))
-    print(info)
+    info = json.loads(sample[0])
+
     sentences = []
     list_of_list_images = []
 
@@ -73,7 +72,7 @@ def preprocess_interleaved(
 
     for image in info["img_paths"]:
         rawbytes = bytes(image, "utf-8")
-        ds = pydicom.dcmread(io.BytesIO(rawbytes))
+        ds = pydicom.dcmread(io.BytesIO(rawbytes), force=True)
         pixel_array = ds.pixel_array
         pil_image = Image.fromarray(pixel_array).convert("RGB")
         curr_list_of_images.append(pil_image)
@@ -187,8 +186,7 @@ def get_mmmg_dataset(args, image_processor, tokenizer, epoch=0, floor=False):
 
     pipeline.extend(
         [
-            # wds.map(load_json, handler=log_and_continue),
-            # wds.to_tuple("json", handler=log_and_continue),
+            wds.to_tuple("json", handler=log_and_continue),
             wds.map(preprocess_fn, handler=log_and_continue),
             wds.batched(args.batch_size_mmc4, partial=False),
         ]
