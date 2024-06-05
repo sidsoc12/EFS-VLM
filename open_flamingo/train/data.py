@@ -32,6 +32,10 @@ except ImportError:
     hvd = None
 
 
+def load_json(sample):
+    data = json.loads(sample)
+    return data
+
 def preprocess_image(sample, image_processor):
     """
     Convert images to tensors for training.
@@ -52,8 +56,9 @@ def preprocess_interleaved(
     max_num_images,
     max_tokens=256,
 ):
-    info = json.loads(sample[0])
-
+    # info = json.loads(sample[0])
+    info = sample
+    
     sentences = []
     list_of_list_images = []
 
@@ -179,7 +184,8 @@ def get_mmmg_dataset(args, image_processor, tokenizer, epoch=0, floor=False):
 
     pipeline.extend(
         [
-            wds.to_tuple("json", handler=log_and_continue),
+            wds.map(load_json, handler=log_and_continue),
+            # wds.to_tuple("json", handler=log_and_continue),
             wds.map(preprocess_fn, handler=log_and_continue),
             wds.batched(args.batch_size_mmc4, partial=False),
         ]
