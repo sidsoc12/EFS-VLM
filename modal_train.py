@@ -1,19 +1,25 @@
 import modal
+from modal import Image
 
 # Define the Modal app
 app = modal.App("open-flamingo-finetuning")
 
 # Define the image with dependencies from environment.yml
-image.micromamba().from_conda_yaml("environment.yml")image = modal.I
+image = (
+    Image.debian_slim(python_version="3.9")
+    .pip_install_from_requirements("combined_requirements.txt")
+    .copy_local_dir(".", "/root")
+)
+
 
 # Define the function to run your training script
 @app.function(
     image=image,
     gpu="A100",
     memory="128GiB",
-    secret=modal.Secret.from_name("W&B"),
+    secrets=[modal.Secret.from_name("wandb")],
 )
-def train_model():
+def run_model():
     import os
     import subprocess
 
@@ -69,9 +75,3 @@ def train_model():
 
     # Run the training script
     subprocess.run(command, check=True)
-
-
-# Run the function in the Modal environment
-if __name__ == "__main__":
-    with stub.run():
-        train_model()

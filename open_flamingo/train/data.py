@@ -42,6 +42,7 @@ def preprocess_image(sample, image_processor):
     image = torch.cat(image, dim=0)
     return image
 
+
 def preprocess_interleaved(
     sample,
     tokenizer,
@@ -53,16 +54,18 @@ def preprocess_interleaved(
 ):
     info = json.loads(sample[0])
 
-    sentences = [] 
+    sentences = []
     list_of_list_images = []
-    
+
     curr_list_of_images = []
 
-    sentences.append(f"Question: {info['mcq']['q']}\nAnswer: {info["mcq"]["a"]}")
-    sentences.append(f"Question: {info['open_end']['q']}\nAnswer: {info["open_end"]["a"]}")
+    sentences.append(f"Question: {info['mcq']['q']}\nAnswer: {info['mcq']['a']}")
+    sentences.append(
+        f"Question: {info['open_end']['q']}\nAnswer: {info['open_end']['a']}"
+    )
 
     for image in info["img_paths"]:
-        rawbytes = base64.b64decode(image) 
+        rawbytes = base64.b64decode(image)
         raw_image = Image.open(io.BytesIO(rawbytes)).convert("RGB")
         curr_list_of_images.append(raw_image)
 
@@ -76,11 +79,12 @@ def preprocess_interleaved(
         image_tensors.append(res)
         image_tensors.append(res.detach().clone())
 
-
     # preprocess and tokenize text
     # add in <image> and <eoc> tokens
     for idx, sentence in enumerate(sentences):
-        sentences[idx] = f"<|endofchunk|>{'<image>'*image_tensors[idx].shape[0]}{sentence}"
+        sentences[idx] = (
+            f"<|endofchunk|>{'<image>'*image_tensors[idx].shape[0]}{sentence}"
+        )
     text = " ".join(sentences)
     text = text.replace("<|endofchunk|>", "", 1)  # but remove first eoc
     # whitespace cleanup
@@ -104,9 +108,12 @@ def preprocess_interleaved(
         (text_tensor["input_ids"], text_tensor["attention_mask"]),
     )
 
+
 """
     Get the multimodal mammography dataset
 """
+
+
 def get_mmmg_dataset(args, image_processor, tokenizer, epoch=0, floor=False):
     """
     Initialize webdataset for MMC4 / ChatGPT sequences
@@ -206,7 +213,6 @@ def get_mmmg_dataset(args, image_processor, tokenizer, epoch=0, floor=False):
     dataloader.num_samples = num_samples
 
     return DataInfo(dataloader=dataloader, shared_epoch=shared_epoch)
-
 
 
 def get_dataset_fn(dataset_type):
