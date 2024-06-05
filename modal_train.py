@@ -9,6 +9,12 @@ app = modal.App("open-flamingo-finetuning")
 image = (
     Image.debian_slim(python_version="3.9")
     .pip_install_from_requirements("combined_requirements.txt")
+    .apt_install("curl", "gnupg")
+    .run_commands(
+        "echo 'deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main' | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list",
+        "curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -",
+        "sudo apt-get update && sudo apt-get install google-cloud-sdk -y",
+    )
     .copy_local_dir(".", "/root")
 )
 
@@ -33,6 +39,21 @@ def run_model():
 
     # Set environment variables if needed
     os.environ["WANDB_API_KEY"] = "f3ac954df2d182db0dade02a382a0eb63290be6d"
+
+    gcloud_key_path = (
+        "/root/gcloud-key.json"  # Ensure this path matches your secret mount
+    )
+    with open(gcloud_key_path, "w") as f:
+        f.write(os.getenv("GCLOUD_KEY"))
+
+    subprocess.run(
+        ["gcloud", "auth", "activate-service-account", "--key-file", gcloud_key_path],
+        check=True,
+    )
+    subprocess.run(
+        ["gcloud", "config", "set", "project", "your-gcp-project-id"], check=True
+    )
+
     subprocess.run(["wandb", "login", os.environ["WANDB_API_KEY"]], check=True)
 
     wandb_project = "Mammo"
@@ -40,18 +61,6 @@ def run_model():
 
     os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
     os.environ["TORCH_USE_CUDA_DSA"] = "1"
-
-    # Ensure the project and entity exist
-    try:
-        subprocess.run(
-            ["wandb", "project", "create", "--entity", wandb_entity, wandb_project],
-            check=True,
-        )
-    except subprocess.CalledProcessError:
-        print(
-            f"Project '{wandb_project}' or entity '{wandb_entity}' does not exist or you do not have permission."
-        )
-        return
 
     # Command to run the training script with the appropriate arguments
     command = [
