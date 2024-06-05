@@ -58,8 +58,8 @@ def preprocess_interleaved(
     
     curr_list_of_images = []
 
-    sentences.append([f"Question: {info['mcq']['q']}", f"Answer: {info["mcq"]["a"]}"])
-    sentences.append([f"Question: {info['open_end']['q']}", f"Answer: {info["open_end"]["a"]}"])
+    sentences.append(f"Question: {info['mcq']['q']}\nAnswer: {info["mcq"]["a"]}")
+    sentences.append(f"Question: {info['open_end']['q']}\nAnswer: {info["open_end"]["a"]}")
 
     for image in info["img_paths"]:
         rawbytes = base64.b64decode(image) 
@@ -80,8 +80,7 @@ def preprocess_interleaved(
     # preprocess and tokenize text
     # add in <image> and <eoc> tokens
     for idx, sentence in enumerate(sentences):
-        sentences[idx] = f"<|endofchunk|>{sentence[0]}{'<image>'*image_tensors[idx].shape[0]}{sentence[1]}"
-
+        sentences[idx] = f"<|endofchunk|>{'<image>'*image_tensors[idx].shape[0]}{sentence}"
     text = " ".join(sentences)
     text = text.replace("<|endofchunk|>", "", 1)  # but remove first eoc
     # whitespace cleanup

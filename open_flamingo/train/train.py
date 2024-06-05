@@ -225,6 +225,12 @@ def main():
     if args.mmc4_shards.startswith("s3"):
         args.mmc4_shards = f"pipe:aws s3 cp {args.mmc4_shards} -"
 
+    # Add GCS path handling
+    if args.laion_shards.startswith("gs://"):
+        args.laion_shards = f"pipe:gcloud storage cp {args.laion_shards} -"
+    if args.mmc4_shards.startswith("gs://"):
+        args.mmc4_shards = f"pipe:gcloud storage cp {args.mmc4_shards} -"
+
     if args.save_checkpoints_to_wandb and not args.report_to_wandb:
         raise ValueError("save_checkpoints_to_wandb requires report_to_wandb")
 
