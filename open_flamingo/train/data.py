@@ -56,18 +56,18 @@ def preprocess_interleaved(
     sentences = [] 
     list_of_list_images = []
 
-    for sample in sample:
-        curr_list_of_images = []
+    
+    curr_list_of_images = []
 
-        sentences.append(f"Question: {info['mcq']['q']}\nAnswer: {info["mcq"]["a"]}")
-        sentences.append(f"Question: {info['open_end']['q']}\nAnswer: {info["open_end"]["a"]}")
+    sentences.append(f"Question: {info['mcq']['q']}\nAnswer: {info["mcq"]["a"]}")
+    sentences.append(f"Question: {info['open_end']['q']}\nAnswer: {info["open_end"]["a"]}")
 
-        for image in info["img_paths"]:
-            rawbytes = base64.b64decode(image) 
-            raw_image = Image.open(io.BytesIO(rawbytes)).convert("RGB")
-            curr_list_of_images.append(raw_image)
+    for image in info["img_paths"]:
+        rawbytes = base64.b64decode(image) 
+        raw_image = Image.open(io.BytesIO(rawbytes)).convert("RGB")
+        curr_list_of_images.append(raw_image)
 
-        list_of_list_images.append(curr_list_of_images)
+    list_of_list_images.append(curr_list_of_images)
 
     # preprocess and pad images
     image_tensors = []
