@@ -9,16 +9,16 @@ app = modal.App("open-flamingo-finetuning")
 image = (
     Image.debian_slim(python_version="3.9")
     .pip_install_from_requirements("combined_requirements.txt")
-    .apt_install("curl", "gnupg")
+    .pip_install("google-cloud-storage")
     .run_commands(
-        [
-            "apt-get update",
-            "apt-get install -y curl gnupg",
-            "echo 'deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main' > /etc/apt/sources.list.d/google-cloud-sdk.list",
-            "curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | tee /usr/share/keyrings/cloud.google.gpg",
-            "apt-get update && apt-get install -y google-cloud-sdk",
-        ]
+        "apt-get update -y",
+        "apt-get install -y wget unzip",
+        "wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-405.0.0-linux-x86_64.tar.gz",
+        "tar -xvzf google-cloud-sdk-405.0.0-linux-x86_64.tar.gz",
+        "mv google-cloud-sdk /root/",
+        "/root/google-cloud-sdk/install.sh --quiet",
     )
+    .env({"PATH": "/root/google-cloud-sdk/bin:$PATH"})
     .copy_local_dir(".", "/root")
 )
 
@@ -44,11 +44,11 @@ def run_model():
     # Set environment variables if needed
     os.environ["WANDB_API_KEY"] = "f3ac954df2d182db0dade02a382a0eb63290be6d"
 
-    gcloud_key_path = (
-        "/root/gcloud-key.json"  # Ensure this path matches your secret mount
-    )
-    with open(gcloud_key_path, "w") as f:
-        f.write(os.getenv("GCLOUD_KEY"))
+    # Authenticate with GCP using the service account key
+    # Authenticate with GCP using the service account key
+
+    # Authenticate with GCP using the service account key from cloud-key.json
+    gcloud_key_path = "/root/gcloud-key.json"
 
     subprocess.run(
         ["gcloud", "auth", "activate-service-account", "--key-file", gcloud_key_path],
@@ -81,14 +81,8 @@ def run_model():
         "--dataset_resampled",
         "--batch_size_mmc4",
         "32",
-        "--batch_size_laion",
-        "64",
         "--train_num_samples_mmc4",
         "125000",
-        "--train_num_samples_laion",
-        "250000",
-        "--loss_multiplier_laion",
-        "0.2",
         "--workers",
         "4",
         "--run_name",
@@ -99,8 +93,6 @@ def run_model():
         "1875",
         "--mmc4_textsim_threshold",
         "0.24",
-        "--laion_shards",
-        "gs://emory-dataset/train/shard-{0..11}.tar",
         "--mmc4_shards",
         "gs://emory-dataset/train/shard-{0..11}.tar",
         "--report_to_wandb",

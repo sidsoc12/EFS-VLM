@@ -47,7 +47,6 @@ def train_one_epoch(
     args,
     model,
     epoch,
-    laion_loader,
     mmc4_loader,
     tokenizer,
     optimizer,
@@ -55,12 +54,11 @@ def train_one_epoch(
     device_id,
     wandb,
 ):
-    # setup loaders
-    num_batches_per_epoch_laion = laion_loader.num_batches
+
     num_batches_per_epoch_mmc4 = mmc4_loader.num_batches
-    assert (
-        num_batches_per_epoch_laion == num_batches_per_epoch_mmc4
-    ), "Number of batches in laion and mmc4 datasets must be the same"
+    # assert (
+    #     num_batches_per_epoch_laion == num_batches_per_epoch_mmc4
+    # ), "Number of batches in laion and mmc4 datasets must be the same"
     num_batches_per_epoch = num_batches_per_epoch_mmc4
     total_training_steps = num_batches_per_epoch * args.num_epochs
 
@@ -82,8 +80,8 @@ def train_one_epoch(
     end = time.time()
 
     # loop through dataloader
-    for num_steps, (batch_laion, batch_mmc4) in tqdm(
-        enumerate(zip(laion_loader, mmc4_loader)),
+    for num_steps, (batch_mmc4) in tqdm(
+        enumerate(zip(mmc4_loader)),
         disable=args.rank != 0,
         total=total_training_steps,
         initial=(epoch * num_batches_per_epoch),
@@ -91,31 +89,31 @@ def train_one_epoch(
         data_time_m.update(time.time() - end)
         global_step = num_steps + epoch * num_batches_per_epoch
 
-        #### LAION FORWARD PASS ####
-        images = batch_laion[0].to(device_id, dtype=cast_dtype, non_blocking=True)
-        images = rearrange(images, "(b t f) c h w -> b t f c h w", t=1, f=1)
-        input_ids = batch_laion[1][0].to(device_id, dtype=cast_dtype, non_blocking=True)
-        attention_mask = batch_laion[1][1].to(
-            device_id, dtype=cast_dtype, non_blocking=True
-        )
+        # #### LAION FORWARD PASS ####
+        # images = batch_laion[0].to(device_id, dtype=cast_dtype, non_blocking=True)
+        # images = rearrange(images, "(b t f) c h w -> b t f c h w", t=1, f=1)
+        # input_ids = batch_laion[1][0].to(device_id, dtype=cast_dtype, non_blocking=True)
+        # attention_mask = batch_laion[1][1].to(
+        #     device_id, dtype=cast_dtype, non_blocking=True
+        # )
 
-        # set up labels; language model is expected to handle shifting
-        labels = input_ids.clone()
-        labels[labels == tokenizer.pad_token_id] = -100
-        labels[labels == media_token_id] = -100
-        labels = labels.to(device_id)
+        # # set up labels; language model is expected to handle shifting
+        # labels = input_ids.clone()
+        # labels[labels == tokenizer.pad_token_id] = -100
+        # labels[labels == media_token_id] = -100
+        # labels = labels.to(device_id)
 
-        # gradient accumulation w/ fsdp cpu offloading requires a no_sync context manager
-        with autocast():
-            loss_laion = model(
-                vision_x=images,
-                lang_x=input_ids,
-                attention_mask=attention_mask,
-                labels=labels,
-            )[0]
+        # # gradient accumulation w/ fsdp cpu offloading requires a no_sync context manager
+        # with autocast():
+        #     loss_laion = model(
+        #         vision_x=images,
+        #         lang_x=input_ids,
+        #         attention_mask=attention_mask,
+        #         labels=labels,
+        #     )[0]
 
-        divided_loss_laion = loss_laion / args.gradient_accumulation_steps
-        (divided_loss_laion * args.loss_multiplier_laion).backward()
+        # divided_loss_laion = loss_laion / args.gradient_accumulation_steps
+        # (divided_loss_laion * args.loss_multiplier_laion).backward()
 
         #### MMC4 FORWARD PASS ####
         images = batch_mmc4[0].to(device_id, dtype=cast_dtype, non_blocking=True)
@@ -221,17 +219,17 @@ def train_one_epoch(
 
             # rank 0 logging
             if args.rank == 0 and args.report_to_wandb:
-                laion_samples_per_second = (
-                    args.gradient_accumulation_steps
-                    * args.batch_size_laion
-                    * args.world_size
-                    / step_time_m.val
-                )
-                laion_samples_per_second_per_gpu = (
-                    args.gradient_accumulation_steps
-                    * args.batch_size_laion
-                    / step_time_m.val
-                )
+                # laion_samples_per_second = (
+                #     args.gradient_accumulation_steps
+                #     * args.batch_size_laion
+                #     * args.world_size
+                #     / step_time_m.val
+                # )
+                # laion_samples_per_second_per_gpu = (
+                #     args.gradient_accumulation_steps
+                #     * args.batch_size_laion
+                #     / step_time_m.val
+                # )
                 c4_samples_per_second = (
                     args.gradient_accumulation_steps
                     * args.batch_size_mmc4
@@ -247,8 +245,8 @@ def train_one_epoch(
                     {
                         "data_time": data_time_m.avg,
                         "step_time": step_time_m.avg,
-                        "laion_samples_per_second": laion_samples_per_second,
-                        "laion_samples_per_second_per_gpu": laion_samples_per_second_per_gpu,
+                        # "laion_samples_per_second": laion_samples_per_second,
+                        # "laion_samples_per_second_per_gpu": laion_samples_per_second_per_gpu,
                         "c4_samples_per_second": c4_samples_per_second,
                         "c4_samples_per_second_per_gpu": c4_samples_per_second_per_gpu,
                         "lr": optimizer.param_groups[0]["lr"],
@@ -258,13 +256,13 @@ def train_one_epoch(
                 step_time_m.reset()
                 data_time_m.reset()
 
-                wandb.log(
-                    {
-                        "loss_laion": loss_laion.item(),
-                        "global_step": global_step,
-                    },
-                    commit=False,
-                )
+                # wandb.log(
+                #     {
+                #         "loss_laion": loss_laion.item(),
+                #         "global_step": global_step,
+                #     },
+                #     commit=False,
+                # )
                 wandb.log(
                     {"loss_mmc4": loss_mmc4.item(), "global_step": global_step},
                     commit=True,
@@ -273,7 +271,7 @@ def train_one_epoch(
         # Log loss to console
         if ((num_steps + 1) % args.logging_steps == 0) and args.rank == 0:
             print(
-                f"Step {num_steps+1}/{num_batches_per_epoch} of epoch {epoch+1}/{args.num_epochs} complete. Loss LAION: {loss_laion.item():.3f} // Loss MMC4: {loss_mmc4.item():.3f}"
+                f"Step {num_steps+1}/{num_batches_per_epoch} of epoch {epoch+1}/{args.num_epochs} complete. Loss MMC4: {loss_mmc4.item():.3f}"
             )
 
 
