@@ -1,5 +1,6 @@
 import modal
 from modal import Image
+import torch
 
 # Define the Modal app
 app = modal.App("open-flamingo-finetuning")
