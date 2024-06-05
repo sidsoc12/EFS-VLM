@@ -15,6 +15,7 @@ import webdataset as wds
 from PIL import Image
 import base64
 from scipy.optimize import linear_sum_assignment
+import pydicom
 
 from data_utils import *
 
@@ -35,6 +36,7 @@ except ImportError:
 def load_json(sample):
     data = json.loads(sample)
     return data
+
 
 def preprocess_image(sample, image_processor):
     """
@@ -57,8 +59,8 @@ def preprocess_interleaved(
     max_tokens=256,
 ):
     # info = json.loads(sample[0])
-    info = sample
-    
+    info = json.loads(sample["json"].decode("utf-8"))
+    print(info)
     sentences = []
     list_of_list_images = []
 
@@ -70,10 +72,11 @@ def preprocess_interleaved(
     )
 
     for image in info["img_paths"]:
-        #rawbytes = base64.b64decode(image)
-        rawbytes = bytes(image, 'utf-8')
-        raw_image = Image.open(io.BytesIO(rawbytes)).convert("RGB")
-        curr_list_of_images.append(raw_image)
+        rawbytes = bytes(image, "utf-8")
+        ds = pydicom.dcmread(io.BytesIO(rawbytes))
+        pixel_array = ds.pixel_array
+        pil_image = Image.fromarray(pixel_array).convert("RGB")
+        curr_list_of_images.append(pil_image)
 
     list_of_list_images.append(curr_list_of_images)
 

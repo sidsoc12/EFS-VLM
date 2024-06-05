@@ -23,3 +23,5 @@ mypy
 pylint
 pytest
 requests
+pydicom
+
