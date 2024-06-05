@@ -36,10 +36,22 @@ def run_model():
     subprocess.run(["wandb", "login", os.environ["WANDB_API_KEY"]], check=True)
 
     wandb_project = "Mammo"
-    wandb_entity = "Mammo"
+    wandb_entity = "cs231n-vlm"
 
     os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
     os.environ["TORCH_USE_CUDA_DSA"] = "1"
+
+    # Ensure the project and entity exist
+    try:
+        subprocess.run(
+            ["wandb", "project", "create", "--entity", wandb_entity, wandb_project],
+            check=True,
+        )
+    except subprocess.CalledProcessError:
+        print(
+            f"Project '{wandb_project}' or entity '{wandb_entity}' does not exist or you do not have permission."
+        )
+        return
 
     # Command to run the training script with the appropriate arguments
     command = [
