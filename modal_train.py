@@ -11,7 +11,7 @@ image = modal.Image.conda().from_yaml("environment.yml")
 @stub.function(
     image=image,
     gpu="A100",
-    memory="64GB",
+    memory="128GB",
     secret=modal.Secret.from_name("your-wandb-secret"),
 )
 def train_model():
@@ -55,9 +55,9 @@ def train_model():
         "--mmc4_textsim_threshold",
         "0.24",
         "--laion_shards",
-        "/path/to/shards/shard-{0..11}.tar",
+        "gs://emory-dataset/train/shard-{0..11}.tar",
         "--mmc4_shards",
-        "/path/to/shards/shard-{0..11}.tar",
+        "gs://emory-dataset/train/shard-{0..11}.tar",
         "--report_to_wandb",
         "--freeze_base_model",  # Add this flag to freeze base model layers
     ]
