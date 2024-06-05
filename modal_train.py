@@ -1,18 +1,17 @@
 import modal
 
 # Define the Modal app
-stub = modal.Stub("open-flamingo-finetuning")
+app = modal.App("open-flamingo-finetuning")
 
 # Define the image with dependencies from environment.yml
-image = modal.Image.conda().from_yaml("environment.yml")
-
+image.micromamba().from_conda_yaml("environment.yml")image = modal.I
 
 # Define the function to run your training script
-@stub.function(
+@app.function(
     image=image,
     gpu="A100",
-    memory="128GB",
-    secret=modal.Secret.from_name("your-wandb-secret"),
+    memory="128GiB",
+    secret=modal.Secret.from_name("W&B"),
 )
 def train_model():
     import os
@@ -20,6 +19,8 @@ def train_model():
 
     # Set environment variables if needed
     os.environ["WANDB_API_KEY"] = "f3ac954df2d182db0dade02a382a0eb63290be6d"
+    wandb_project = "Mammo"
+    wandb_entity = "Mammo"
 
     # Command to run the training script with the appropriate arguments
     command = [
@@ -59,6 +60,10 @@ def train_model():
         "--mmc4_shards",
         "gs://emory-dataset/train/shard-{0..11}.tar",
         "--report_to_wandb",
+        "--wandb_project",
+        wandb_project,
+        "--wandb_entity",
+        wandb_entity,
         "--freeze_base_model",  # Add this flag to freeze base model layers
     ]
 
