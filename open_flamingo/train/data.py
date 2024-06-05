@@ -184,7 +184,7 @@ def get_mmmg_dataset(args, image_processor, tokenizer, epoch=0, floor=False):
 
     pipeline.extend(
         [
-            wds.map(load_json, handler=log_and_continue),
+            # wds.map(load_json, handler=log_and_continue),
             # wds.to_tuple("json", handler=log_and_continue),
             wds.map(preprocess_fn, handler=log_and_continue),
             wds.batched(args.batch_size_mmc4, partial=False),
