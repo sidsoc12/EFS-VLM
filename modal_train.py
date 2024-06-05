@@ -55,9 +55,9 @@ def train_model():
         "--mmc4_textsim_threshold",
         "0.24",
         "--laion_shards",
-        "/path/to/shards/shard-{0000..0999}.tar",
+        "/path/to/shards/shard-{0..11}.tar",
         "--mmc4_shards",
-        "/path/to/shards/shard-{0000..0999}.tar",
+        "/path/to/shards/shard-{0..11}.tar",
         "--report_to_wandb",
         "--freeze_base_model",  # Add this flag to freeze base model layers
     ]
