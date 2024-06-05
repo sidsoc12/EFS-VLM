@@ -51,11 +51,10 @@ def preprocess_interleaved(
     max_num_images,
     max_tokens=256,
 ):
-    info = json.loads(sample)
+    info = json.loads(sample[0])
 
     sentences = [] 
     list_of_list_images = []
-
     
     curr_list_of_images = []
 
