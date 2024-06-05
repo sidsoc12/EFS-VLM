@@ -275,15 +275,6 @@ def main():
     )
     random_seed(args.seed, args.rank)
 
-    # Add the PROOF-specific modifications here
-    # Freeze all parameters
-    model.requires_grad_(False)
-    assert sum(p.numel() for p in model.parameters() if p.requires_grad) == 0
-
-    # Here we are only unfreezing the projection layers.
-    model.visual_projection.requires_grad_(True)
-    model.text_projection.requires_grad_(True)
-
     # Initialize logging
     print(f"Start running training on rank {args.rank}.")
     if args.rank == 0 and args.report_to_wandb:
