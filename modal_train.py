@@ -51,7 +51,7 @@ def run_model():
         check=True,
     )
     subprocess.run(
-        ["gcloud", "config", "set", "project", "your-gcp-project-id"], check=True
+        ["gcloud", "config", "set", "project", "our-service-423520-a9"], check=True
     )
 
     subprocess.run(["wandb", "login", os.environ["WANDB_API_KEY"]], check=True)
