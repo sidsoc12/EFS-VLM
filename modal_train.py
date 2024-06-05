@@ -11,9 +11,13 @@ image = (
     .pip_install_from_requirements("combined_requirements.txt")
     .apt_install("curl", "gnupg")
     .run_commands(
-        "echo 'deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main' | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list",
-        "curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -",
-        "sudo apt-get update && sudo apt-get install google-cloud-sdk -y",
+        [
+            "apt-get update",
+            "apt-get install -y curl gnupg",
+            "echo 'deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main' > /etc/apt/sources.list.d/google-cloud-sdk.list",
+            "curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | tee /usr/share/keyrings/cloud.google.gpg",
+            "apt-get update && apt-get install -y google-cloud-sdk",
+        ]
     )
     .copy_local_dir(".", "/root")
 )
@@ -25,7 +29,7 @@ image = (
     gpu="A100:4",
     memory="128GiB",
     timeout=86400,
-    secrets=[modal.Secret.from_name("wandb")],
+    secrets=[modal.Secret.from_name("wandb"), modal.Secret.from_name("mammo-secret")],
 )
 def run_model():
     import os
