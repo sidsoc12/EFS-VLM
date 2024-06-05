@@ -1,5 +1,6 @@
 import modal
 from modal import Image
+import torch
 
 # Define the Modal app
 app = modal.App("open-flamingo-finetuning")
@@ -23,12 +24,18 @@ def run_model():
     import os
     import subprocess
 
+    print(f"Available GPUs: {torch.cuda.device_count()}")
+    # Print names of available GPUs
+
+    for i in range(torch.cuda.device_count()):
+        print(f"GPU {i}: {torch.cuda.get_device_name(i)}")
+
     # Set environment variables if needed
     os.environ["WANDB_API_KEY"] = "f3ac954df2d182db0dade02a382a0eb63290be6d"
     wandb_project = "Mammo"
     wandb_entity = "Mammo"
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
 
     # Command to run the training script with the appropriate arguments
     command = [
