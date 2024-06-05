@@ -67,7 +67,7 @@ def create_model_and_transforms(
         local_files_only=use_local_files,
         trust_remote_code=True,
         cache_dir=cache_dir,
-        revision="9699cd677000a421da80dd1aaf748384e637ffce",
+        revision="0b68fcba989071802f22961b983faa1a7ad16a5c",
     )
 
     # hacks for MPT-1B, which doesn't have a get_input_embeddings method

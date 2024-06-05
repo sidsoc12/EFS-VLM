@@ -100,6 +100,7 @@ def run_model():
         "--mmc4_shards",
         "gs://emory-dataset/train/shard-{0..11}.tar",
         "--report_to_wandb",
+        "--wandb_project",
         wandb_project,
         "--wandb_entity",
         wandb_entity,
