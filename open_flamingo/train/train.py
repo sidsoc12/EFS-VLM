@@ -219,15 +219,14 @@ def main():
     args = parser.parse_args()
 
     # Validate args
-    # if args.laion_shards.startswith("s3"):
-    #     args.laion_shards = f"pipe:aws s3 cp {args.laion_shards} -"
+    if args.laion_shards.startswith("s3"):
+        args.laion_shards = f"pipe:aws s3 cp {args.laion_shards} -"
 
     if args.mmc4_shards.startswith("s3"):
         args.mmc4_shards = f"pipe:aws s3 cp {args.mmc4_shards} -"
 
-    # Add GCS path handling
-    # if args.laion_shards.startswith("gs://"):
-    #     args.laion_shards = f"pipe:gcloud storage cp {args.laion_shards} -"
+    if args.laion_shards.startswith("gs://"):
+        args.laion_shards = f"pipe:gcloud storage cp {args.laion_shards} -"
     if args.mmc4_shards.startswith("gs://"):
         args.mmc4_shards = f"pipe:gcloud storage cp {args.mmc4_shards} -"
 
@@ -250,9 +249,9 @@ def main():
             + "The main issue was the missing group kwarg on line 1596 in _all_gather_optim_state."
         )
 
-    # assert (args.train_num_samples_laion // args.batch_size_laion) == (
-    #     args.train_num_samples_mmc4 // args.batch_size_mmc4
-    # ), "number of samples per epoch must be equal for mmc4 and laion"
+    assert (args.train_num_samples_laion // args.batch_size_laion) == (
+        args.train_num_samples_mmc4 // args.batch_size_mmc4
+    ), "number of samples per epoch must be equal for mmc4 and laion"
 
     # Set up distributed training
     if args.offline:
@@ -430,7 +429,7 @@ def main():
         optimizer.load_state_dict(osd)
 
     # Initialize data loaders
-    # laion_dataset = get_data(args, image_processor, tokenizer, "image_text")
+    laion_dataset = get_data(args, image_processor, tokenizer, "image_text")
     mmc4_dataset = get_data(args, image_processor, tokenizer, "mmc4")
     total_training_steps = (
         (args.train_num_samples_mmc4) // (args.batch_size_mmc4 * args.world_size)
@@ -465,8 +464,8 @@ def main():
     ddp_model.train()
 
     for epoch in range(resume_from_epoch, args.num_epochs):
-        # laion_dataset.set_epoch(epoch)
-        # laion_loader = laion_dataset.dataloader
+        laion_dataset.set_epoch(epoch)
+        laion_loader = laion_dataset.dataloader
         mmc4_dataset.set_epoch(epoch)
         mmc4_loader = mmc4_dataset.dataloader
 
@@ -477,6 +476,7 @@ def main():
             tokenizer=tokenizer,
             optimizer=optimizer,
             lr_scheduler=lr_scheduler,
+            laion_loader=laion_loader,
             mmc4_loader=mmc4_loader,
             device_id=device_id,
             wandb=wandb,

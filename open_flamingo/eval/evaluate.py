@@ -885,9 +885,11 @@ def evaluate_captioning(
 
     metrics = compute_cider(
         result_path=results_path,
-        annotations_path=args.coco_annotations_json_path
-        if dataset_name == "coco"
-        else args.flickr_annotations_json_path,
+        annotations_path=(
+            args.coco_annotations_json_path
+            if dataset_name == "coco"
+            else args.flickr_annotations_json_path
+        ),
     )
 
     # delete the temporary file
@@ -1102,9 +1104,11 @@ def evaluate_vqa(
         fill_fn(
             f"{dataset_name}results_{random_uuid}.json",
             f"{dataset_name}-testdev_{eval_model.lm_name}_{num_shots}_{'rices' if args.rices else 'random'}_{seed}.json",
-            args.vqav2_final_test_questions_json_path
-            if dataset_name == "vqav2"
-            else args.vizwiz_test_questions_json_path,
+            (
+                args.vqav2_final_test_questions_json_path
+                if dataset_name == "vqav2"
+                else args.vizwiz_test_questions_json_path
+            ),
         )
         print(
             "Test-dev results saved to ",
@@ -1283,9 +1287,11 @@ def evaluate_classification(
         greater_label = max(all_class_names)
         gts = [pred["gt_label"] for pred in all_predictions]
         pred_scores = [
-            pred["pred_score"]
-            if pred["pred_label"] == greater_label
-            else 1 - pred["pred_score"]
+            (
+                pred["pred_score"]
+                if pred["pred_label"] == greater_label
+                else 1 - pred["pred_score"]
+            )
             for pred in all_predictions
         ]
         return roc_auc_score(gts, pred_scores)
