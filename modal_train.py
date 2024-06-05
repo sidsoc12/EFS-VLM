@@ -33,6 +33,8 @@ def run_model():
 
     # Set environment variables if needed
     os.environ["WANDB_API_KEY"] = "f3ac954df2d182db0dade02a382a0eb63290be6d"
+    subprocess.run(["wandb", "login", os.environ["WANDB_API_KEY"]], check=True)
+
     wandb_project = "Mammo"
     wandb_entity = "Mammo"
 
