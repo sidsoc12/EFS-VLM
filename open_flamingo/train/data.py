@@ -65,7 +65,8 @@ def preprocess_interleaved(
     )
 
     for image in info["img_paths"]:
-        rawbytes = base64.b64decode(image)
+        #rawbytes = base64.b64decode(image)
+        rawbytes = bytes(image, 'utf-8')
         raw_image = Image.open(io.BytesIO(rawbytes)).convert("RGB")
         curr_list_of_images.append(raw_image)
 
