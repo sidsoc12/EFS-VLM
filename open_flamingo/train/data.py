@@ -85,7 +85,7 @@ def preprocess_interleaved(
     for image_list in list_of_list_images:
         res = preprocess_image(image_list, clip_processor)
         image_tensors.append(res)
-        image_tensors.append(res.detach().clone())
+        image_tensors.append(res.detach().requires_grad(True).clone())
 
     # preprocess and tokenize text
     # add in <image> and <eoc> tokens
